@@ -57,10 +57,13 @@ _cyc = sum(p[1] for p in SHIELD)/len(SHIELD)
 def _scale(pts, s): return [(_cxc+(x-_cxc)*s, _cyc+(y-_cyc)*s) for (x,y) in pts]
 
 
-def generate_stl(prenom, outdir):
-    """Génère le STL pour 'prenom'. Retourne le chemin du fichier créé."""
+def generate_stl(prenom, role, outdir):
+    """Génère le STL pour 'prenom' + mention 'role' (PAPA/PAPI/MAMAN/MAMIE...).
+    Retourne (chemin, nb_triangles)."""
     prenom = (prenom or "").strip().upper()
+    role = (role or "PAPA").strip().upper()
     slug = re.sub(r"[^A-Za-z0-9]+", "", prenom) or "PRENOM"
+    rslug = re.sub(r"[^A-Za-z0-9]+", "", role).lower() or "papa"
 
     NX = int(round(W_MM/CS)) + 1
     NY = int(round(H_MM/CS)) + 1
@@ -103,7 +106,7 @@ def generate_stl(prenom, outdir):
     # 4) textes
     stamp(text_mask(prenom, cy, 5.0, max_w_mm=34.0), H_RELIEF)
     stamp(text_mask("SUPER", 35.0, 9.0), H_RELIEF)
-    stamp(text_mask("PAPA", 46.0, 13.0), H_RELIEF)
+    stamp(text_mask(role, 46.0, 13.0, max_w_mm=48.0), H_RELIEF)
     # 5) fente ruban (trou traversant)
     m, d = newmask()
     d.rounded_rectangle([px(CX-13), px(8-1.5), px(CX+13), px(8+1.5)], radius=px(1.5), fill=255)
@@ -133,7 +136,7 @@ def generate_stl(prenom, outdir):
             if not filled(i, j+1): quad((x0,y1,0.),(x1,y1,0.),v11,v01)
 
     os.makedirs(outdir, exist_ok=True)
-    path = os.path.join(outdir, f"medaille_super_papa_{slug}.stl")
+    path = os.path.join(outdir, f"medaille_super_{rslug}_{slug}.stl")
     with open(path, "wb") as f:
         f.write(b"medaille super papa".ljust(80, b" "))
         f.write(struct.pack("<I", len(tris)))
@@ -151,19 +154,29 @@ def run_gui():
     OUTDIR = os.path.join(HERE, "STL")
 
     root = tk.Tk()
-    root.title("Médaille SUPER PAPA")
-    root.geometry("420x250")
+    root.title("Médaille SUPER PAPA/MAMAN")
+    root.geometry("420x330")
     root.configure(bg="#1f2937")
     root.resizable(False, False)
 
-    tk.Label(root, text="🏅  Médaille SUPER PAPA", bg="#1f2937", fg="#f3f4f6",
-             font=("Segoe UI", 15, "bold")).pack(pady=(18, 4))
-    tk.Label(root, text="Prénom à graver :", bg="#1f2937", fg="#cbd5e1",
-             font=("Segoe UI", 11)).pack(pady=(8, 2))
+    tk.Label(root, text="🏅  Médaille personnalisée", bg="#1f2937", fg="#f3f4f6",
+             font=("Segoe UI", 15, "bold")).pack(pady=(16, 4))
 
+    tk.Label(root, text="Prénom à graver :", bg="#1f2937", fg="#cbd5e1",
+             font=("Segoe UI", 11)).pack(pady=(6, 2))
     var = tk.StringVar()
     entry = tk.Entry(root, textvariable=var, font=("Segoe UI", 14), justify="center", width=20)
-    entry.pack(pady=4); entry.focus()
+    entry.pack(pady=2); entry.focus()
+
+    tk.Label(root, text="Mention :", bg="#1f2937", fg="#cbd5e1",
+             font=("Segoe UI", 11)).pack(pady=(8, 2))
+    role_var = tk.StringVar(value="PAPA")
+    roles = ["PAPA", "PAPI", "MAMAN", "MAMIE", "TONTON", "TATIE"]
+    om = tk.OptionMenu(root, role_var, *roles)
+    om.config(font=("Segoe UI", 12), bg="#374151", fg="white",
+              activebackground="#4b5563", highlightthickness=0, relief="flat", width=10)
+    om["menu"].config(bg="#374151", fg="white")
+    om.pack(pady=2)
 
     status = tk.Label(root, text="", bg="#1f2937", fg="#93c5fd",
                       font=("Segoe UI", 9), wraplength=380, justify="center")
@@ -176,7 +189,7 @@ def run_gui():
             return
         status.config(text="Génération en cours…", fg="#93c5fd"); root.update()
         try:
-            path, ntri = generate_stl(name, OUTDIR)
+            path, ntri = generate_stl(name, role_var.get(), OUTDIR)
         except Exception as e:
             status.config(text="Erreur : %s" % e, fg="#fca5a5"); return
         status.config(text="✅ Créé : %s\n(%d triangles)" % (os.path.basename(path), ntri),
@@ -197,8 +210,9 @@ def run_gui():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:                     # mode ligne de commande : python medaille_app.py LUCAS
-        p, n = generate_stl(sys.argv[1], os.path.join(HERE, "STL"))
+    if len(sys.argv) > 1:                     # ligne de commande : python medaille_app.py LUCAS [PAPI]
+        role = sys.argv[2] if len(sys.argv) > 2 else "PAPA"
+        p, n = generate_stl(sys.argv[1], role, os.path.join(HERE, "STL"))
         print("OK ->", p, "(%d triangles)" % n)
     else:
         run_gui()
