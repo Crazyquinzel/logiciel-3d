@@ -1,18 +1,17 @@
 ============================================================
-   MÉDAILLE « SUPER PAPA » — OUTIL DE PERSONNALISATION
+   MÉDAILLE PERSONNALISÉE — OUTIL DE PERSONNALISATION
 ============================================================
 
-But : créer un fichier STL imprimable avec le prénom de ton choix,
-sans rien taper — juste une petite fenêtre où tu écris le prénom.
+But : créer un fichier STL imprimable, personnalisé (prénom, mention,
+forme et icône), sans rien taper — juste une petite fenêtre.
 
 
 ------------------------------------------------------------
 ÉTAPE 1 — Installer Python (une seule fois)
 ------------------------------------------------------------
 - Va sur  https://www.python.org/downloads/
-- Télécharge et installe Python 3.
-- ⚠️ WINDOWS : pendant l'installation, COCHE la case
-  « Add Python to PATH » (en bas de la 1ère fenêtre).
+- Installe Python 3.
+- ⚠️ WINDOWS : COCHE « Add Python to PATH » pendant l'installation.
 
 
 ------------------------------------------------------------
@@ -20,23 +19,37 @@ sans rien taper — juste une petite fenêtre où tu écris le prénom.
 ------------------------------------------------------------
 - WINDOWS : double-clique sur  «  Medaille_Windows.bat  »
 - MAC     : clic droit sur  «  Medaille_Mac.command  »  > Ouvrir
-            (seulement au 1er lancement ; ensuite double-clic).
-
-La 1ère fois, l'outil installe tout seul le petit module "Pillow"
-(quelques secondes). Une fenêtre s'ouvre ensuite.
+La 1ère fois, l'outil installe tout seul "Pillow" (quelques secondes).
 
 
 ------------------------------------------------------------
-ÉTAPE 3 — Créer la médaille
+ÉTAPE 3 — Créer la médaille (2 onglets)
 ------------------------------------------------------------
-1. Tape le prénom dans la case (ex. Lucas).
-2. Clique sur « Créer le fichier STL ».
-3. Le fichier apparaît dans le sous-dossier  « STL »
-   (ex. STL/medaille_super_papa_LUCAS.stl) et le dossier s'ouvre.
-4. Ouvre ce STL dans ton slicer (Cura, PrusaSlicer, Bambu…) → impression.
+ONGLET « Médaille » :
+  - Prénom : tape le prénom (ex. Lucas). Les prénoms longs se réduisent tout seuls.
+  - Mention : PAPA, PAPI, MAMAN, MAMIE, TONTON, TATIE, PARRAIN, MARRAINE,
+              PROF, MAÎTRE, MAÎTRESSE, ATSEM.
 
-Les prénoms longs sont automatiquement réduits pour tenir dans le cadre.
-Les accents s'affichent sur la médaille (le nom du fichier, lui, est simplifié).
+ONGLET « Forme & déco » :
+  - Forme : Blason, Cercle ou Hexagone.
+  - Icône en relief : Aucune, Étoile, Cœur, Ballon de foot, Crayon,
+                      Marteau, Clé (outils), Pomme, Couronne.
+
+Puis clique « Créer le fichier STL ».
+➡️ Le fichier apparaît dans le sous-dossier « STL » et le dossier s'ouvre.
+   (ex. medaille_super_prof_TOM_blason_crayon.stl)
+Ouvre ce STL dans ton slicer (Cura, PrusaSlicer, Bambu Studio…) → impression.
+
+
+------------------------------------------------------------
+ASTUCE : TEXTE / ICÔNE EN DORÉ (Bambu Studio & co.)
+------------------------------------------------------------
+Le relief (prénom + mention + liseré + icône) culmine à 0,9 mm au-dessus
+du corps. Ajoute un CHANGEMENT DE FILAMENT à la hauteur Z = 5,0 mm :
+tout ce qui est au-dessus sort dans une 2e couleur (or/argent) →
+effet médaille frappée, sans peinture.
+
+Impression conseillée : DOS sur le plateau, relief vers le haut → aucun support.
 
 
 ------------------------------------------------------------
@@ -47,8 +60,9 @@ CONTENU DU DOSSIER
 - Medaille_Windows.bat ... lanceur Windows
 - Medaille_Mac.command ... lanceur Mac
 - LISEZ-MOI.txt .......... ce fichier
-- STL/ ................... dossier créé automatiquement avec tes fichiers
+- STL/ ................... créé automatiquement avec tes fichiers
 
-Astuce impression (filament noir) : imprime DOS sur le plateau, relief
-vers le haut → aucun support. Brossage argent/or sur les reliefs = effet premium.
+Pour les pros du clavier — ligne de commande :
+    python medaille_app.py PRENOM [MENTION] [FORME] [ICONE]
+    ex : python medaille_app.py Tom PROF blason crayon
 ============================================================
