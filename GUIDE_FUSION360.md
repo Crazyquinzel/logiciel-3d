@@ -120,6 +120,33 @@ police arrondie (cf. plus haut), puis `Extrusion` **+0,9 mm**, **Joindre**.
 
 ---
 
+## 🔁 Changer le prénom d'une commande à l'autre
+
+Tu as **deux méthodes**, choisis la plus pratique pour toi :
+
+### Méthode A — la plus rapide : le script (1 seule commande)
+Le générateur `make_stl.py` prend le **prénom en argument**. Pour chaque commande, ouvre un terminal
+dans le dossier et tape (remplace le prénom) :
+
+```bash
+python3 make_stl.py LUCAS
+```
+
+➡️ Ça crée `medaille_super_papa_LUCAS.stl` (+ un aperçu `apercu_LUCAS.png`).
+- Sans argument, `python3 make_stl.py` reprend `THOMAS` par défaut.
+- Les **prénoms longs sont réduits automatiquement** pour tenir dans le cartouche (testé : `Jean-Christophe`).
+- Prérequis : Python 3 + Pillow (`pip install pillow`). C'est tout.
+
+> 💡 Tu n'as pas/plus envie de toucher au terminal ? **Envoie-moi juste le prénom**, je te renvoie le STL.
+
+### Méthode B — dans Fusion 360 (sans Python)
+Si tu as construit le modèle dans Fusion (étapes ci-dessus) :
+1. Dans l'arborescence, déplie les esquisses, **double-clique sur l'esquisse du prénom**.
+2. Double-clique sur le texte → tape le nouveau prénom → **Terminer l'esquisse**.
+3. Fusion régénère tout. **Réexporte le STL** (étape 6) en le nommant par le prénom.
+
+---
+
 ## 🛒 Astuce boutique (médailles personnalisées)
 
 - Garde **un fichier Fusion « maître »**. Pour chaque vente, change **uniquement le prénom** (étape 5)

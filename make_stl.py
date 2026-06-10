@@ -5,7 +5,7 @@ Pur Python + Pillow (deja installe). Aucune dependance lourde.
 
 Sortie : medaille_super_papa.stl  (+ heightmap_preview.png pour controle)
 """
-import math, struct
+import math, struct, sys, re
 from PIL import Image, ImageDraw, ImageFont
 
 # ----------------- parametres (mm) -----------------
@@ -14,7 +14,11 @@ CS = 0.22                        # taille de cellule (resolution) en mm
 BASE = 5.0                       # epaisseur du corps
 H_RELIEF = BASE + 0.9            # sommet du texte
 H_LISERE = BASE + 0.8            # sommet du lisere / cartouche
-PRENOM = "THOMAS"                # <-- prenom d'exemple (modifiable)
+
+# >>> PRENOM : 1er argument en ligne de commande, sinon "THOMAS" par defaut <<<
+#     ex :  python3 make_stl.py LUCAS
+PRENOM = (sys.argv[1] if len(sys.argv) > 1 else "THOMAS").upper()
+SLUG = re.sub(r"[^A-Za-z0-9]+", "", PRENOM) or "PRENOM"
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
@@ -55,9 +59,16 @@ def stamp(mask, value):
             H[idx] = value
 
 def font(sz): return ImageFont.truetype(FONT, max(6, int(sz)))
-def text_mask(s, y_mm, h_mm):
+def text_mask(s, y_mm, h_mm, max_w_mm=None):
+    """texte centre ; si max_w_mm est donne, reduit la taille pour tenir (prenom long)."""
+    h = h_mm
+    if max_w_mm:
+        tmp = Image.new("L", (10, 10)); td = ImageDraw.Draw(tmp)
+        w = td.textlength(s, font=font(px(h)))
+        if w > px(max_w_mm):
+            h = h * px(max_w_mm) / w        # mise a l'echelle pour tenir dans la largeur
     m, d = newmask()
-    d.text((px(CX), px(y_mm)), s, font=font(px(h_mm)), fill=255, anchor="mm")
+    d.text((px(CX), px(y_mm)), s, font=font(px(h)), fill=255, anchor="mm")
     return m
 
 # 1) corps du blason -> BASE
@@ -74,8 +85,8 @@ def rrect(cx, cy, w, h, r, val):
     stamp(m, val)
 rrect(CX, cy_cart, 40, 9, 4.5, H_LISERE)     # cadre exterieur
 rrect(CX, cy_cart, 40-2.4, 9-2.4, 3.3, BASE) # evidement -> cadre 1.2 mm
-# 4) textes en relief -> H_RELIEF
-stamp(text_mask(PRENOM, cy_cart, 5.0), H_RELIEF)
+# 4) textes en relief -> H_RELIEF  (le prenom s'adapte a la largeur du cartouche)
+stamp(text_mask(PRENOM, cy_cart, 5.0, max_w_mm=34.0), H_RELIEF)
 stamp(text_mask("SUPER", 35.0, 9.0), H_RELIEF)
 stamp(text_mask("PAPA", 46.0, 13.0), H_RELIEF)
 # 5) fente du ruban (trou traversant) -> 0
@@ -87,7 +98,7 @@ stamp(m, 0.0)
 hmax = max(H) or 1.0
 prev = Image.new("L", (NX, NY))
 prev.putdata([int(255*h/hmax) for h in H])
-prev.save("/home/user/logiciel-3d/heightmap_preview.png")
+prev.save(f"/home/user/logiciel-3d/apercu_{SLUG}.png")
 
 # ----------------- maillage heightmap -> solide etanche -----------------
 def node(i, j): return H[j*NX+i]
@@ -126,7 +137,7 @@ for j in range(NY-1):
             quad((x0,y1,0.0),(x1,y1,0.0),v11,v01)
 
 # ----------------- ecriture STL binaire -----------------
-path = "/home/user/logiciel-3d/medaille_super_papa.stl"
+path = f"/home/user/logiciel-3d/medaille_super_papa_{SLUG}.stl"
 with open(path, "wb") as f:
     f.write(b"medaille super papa - heightmap solid".ljust(80, b" "))
     f.write(struct.pack("<I", len(tris)))
@@ -136,7 +147,7 @@ with open(path, "wb") as f:
         f.write(struct.pack("<9f", *t))
         f.write(struct.pack("<H", 0))
 
-print(f"OK : {path}")
-print(f"  resolution {NX}x{NY} noeuds (cellule {CS} mm)")
-print(f"  triangles : {len(tris):,}")
-print(f"  dimensions : {W_MM:.0f} x {H_MM:.0f} x {max(H):.1f} mm")
+print(f"OK : prenom = {PRENOM}")
+print(f"  -> {path}")
+print(f"  -> apercu_{SLUG}.png")
+print(f"  triangles : {len(tris):,} | dimensions : {W_MM:.0f} x {H_MM:.0f} x {max(H):.1f} mm")
