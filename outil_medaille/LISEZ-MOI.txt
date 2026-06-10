@@ -1,0 +1,54 @@
+============================================================
+   MÉDAILLE « SUPER PAPA » — OUTIL DE PERSONNALISATION
+============================================================
+
+But : créer un fichier STL imprimable avec le prénom de ton choix,
+sans rien taper — juste une petite fenêtre où tu écris le prénom.
+
+
+------------------------------------------------------------
+ÉTAPE 1 — Installer Python (une seule fois)
+------------------------------------------------------------
+- Va sur  https://www.python.org/downloads/
+- Télécharge et installe Python 3.
+- ⚠️ WINDOWS : pendant l'installation, COCHE la case
+  « Add Python to PATH » (en bas de la 1ère fenêtre).
+
+
+------------------------------------------------------------
+ÉTAPE 2 — Lancer l'outil (à chaque fois)
+------------------------------------------------------------
+- WINDOWS : double-clique sur  «  Medaille_Windows.bat  »
+- MAC     : clic droit sur  «  Medaille_Mac.command  »  > Ouvrir
+            (seulement au 1er lancement ; ensuite double-clic).
+
+La 1ère fois, l'outil installe tout seul le petit module "Pillow"
+(quelques secondes). Une fenêtre s'ouvre ensuite.
+
+
+------------------------------------------------------------
+ÉTAPE 3 — Créer la médaille
+------------------------------------------------------------
+1. Tape le prénom dans la case (ex. Lucas).
+2. Clique sur « Créer le fichier STL ».
+3. Le fichier apparaît dans le sous-dossier  « STL »
+   (ex. STL/medaille_super_papa_LUCAS.stl) et le dossier s'ouvre.
+4. Ouvre ce STL dans ton slicer (Cura, PrusaSlicer, Bambu…) → impression.
+
+Les prénoms longs sont automatiquement réduits pour tenir dans le cadre.
+Les accents s'affichent sur la médaille (le nom du fichier, lui, est simplifié).
+
+
+------------------------------------------------------------
+CONTENU DU DOSSIER
+------------------------------------------------------------
+- medaille_app.py ........ le programme
+- DejaVuSans-Bold.ttf .... la police (NE PAS supprimer)
+- Medaille_Windows.bat ... lanceur Windows
+- Medaille_Mac.command ... lanceur Mac
+- LISEZ-MOI.txt .......... ce fichier
+- STL/ ................... dossier créé automatiquement avec tes fichiers
+
+Astuce impression (filament noir) : imprime DOS sur le plateau, relief
+vers le haut → aucun support. Brossage argent/or sur les reliefs = effet premium.
+============================================================
