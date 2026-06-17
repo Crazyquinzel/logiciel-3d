@@ -62,6 +62,29 @@ def hexagon_pts(cx, cy, r):
     # sommets à 0,60,...  -> côtés horizontaux en haut et en bas (pratique pour la fente)
     return [(cx+r*math.cos(math.radians(60*i)), cy+r*math.sin(math.radians(60*i))) for i in range(6)]
 
+def rounded_rect_pts(W, H, r, n=10):
+    pts = []
+    centers = [(W-r, r), (W-r, H-r), (r, H-r), (r, r)]          # TR, BR, BL, TL
+    starts = [-math.pi/2, 0.0, math.pi/2, math.pi]
+    for (ccx, ccy), a0 in zip(centers, starts):
+        for k in range(n+1):
+            a = a0 + (math.pi/2)*k/n
+            pts.append((ccx+r*math.cos(a), ccy+r*math.sin(a)))
+    return pts
+
+def heart_pts(W, H, n=140, margin=2.0):
+    raw = []
+    for i in range(n):
+        t = 2*math.pi*i/n
+        x = 16*math.sin(t)**3
+        y = 13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t)
+        raw.append((x, y))
+    xs = [p[0] for p in raw]; ys = [p[1] for p in raw]
+    minx, maxx = min(xs), max(xs); miny, maxy = min(ys), max(ys)
+    s = min((W-2*margin)/(maxx-minx), (H-2*margin)/(maxy-miny))
+    offx = (W-(maxx-minx)*s)/2
+    return [(offx+(x-minx)*s, margin+(maxy-y)*s) for x, y in raw]   # flip y (pointe en bas)
+
 def scale_about(pts, s):
     cx = sum(p[0] for p in pts)/len(pts); cy = sum(p[1] for p in pts)/len(pts)
     return [(cx+(x-cx)*s, cy+(y-cy)*s) for (x, y) in pts]
@@ -71,15 +94,19 @@ SHAPES = {
     "blason":   dict(W=60, H=75, slot_y=8.0,  cart_y=26.0, super_y=35.0, role_y=46.0, icon_y=60.0, icon_h=13.0),
     "cercle":   dict(W=74, H=74, slot_y=11.0, cart_y=27.0, super_y=37.0, role_y=48.0, icon_y=60.0, icon_h=12.0),
     "hexagone": dict(W=72, H=74, slot_y=9.0,  cart_y=27.0, super_y=37.0, role_y=48.0, icon_y=60.0, icon_h=12.0),
+    "coeur":    dict(W=78, H=72, slot_y=20.0, cart_y=30.0, super_y=39.0, role_y=49.0, icon_y=58.0, icon_h=11.0),
+    "carre":    dict(W=70, H=72, slot_y=8.0,  cart_y=25.0, super_y=35.0, role_y=46.0, icon_y=59.0, icon_h=13.0),
 }
 
 def outline_for(shape, W, H):
     if shape == "cercle":
-        r = min(W, H)/2.0 - 1.0
-        return circle_pts(W/2.0, H/2.0, r)
+        return circle_pts(W/2.0, H/2.0, min(W, H)/2.0 - 1.0)
     if shape == "hexagone":
-        r = min(W, H)/2.0 - 1.0
-        return hexagon_pts(W/2.0, H/2.0, r)
+        return hexagon_pts(W/2.0, H/2.0, min(W, H)/2.0 - 1.0)
+    if shape == "coeur":
+        return heart_pts(W, H)
+    if shape == "carre":
+        return rounded_rect_pts(W, H, min(W, H)*0.20)
     return shield_pts(W, H)
 
 # ----------------- icônes (silhouettes en relief) -----------------
@@ -183,7 +210,8 @@ ICON_LABEL = {"aucun":"Aucune", "etoile":"Étoile", "coeur":"Cœur", "foot":"Bal
 
 ROLES = ["PAPA","PAPI","MAMAN","MAMIE","TONTON","TATIE","PARRAIN","MARRAINE",
          "PROF","MAÎTRE","MAÎTRESSE","ATSEM"]
-SHAPE_LABEL = {"blason":"Blason", "cercle":"Cercle", "hexagone":"Hexagone"}
+SHAPE_LABEL = {"blason":"Blason", "cercle":"Cercle", "hexagone":"Hexagone",
+               "coeur":"Cœur", "carre":"Carré arrondi"}
 
 
 def generate_stl(prenom, role, shape, icon, outdir, show_super=True):
@@ -342,10 +370,12 @@ def run_gui():
     tk.Label(t2, text="Forme :", bg=BG, fg="#cbd5e1", font=("Segoe UI", 11)).pack(pady=(14, 2))
     shape_var = tk.StringVar(value="blason")
     fr = tk.Frame(t2, bg=BG); fr.pack()
-    for key in ("blason", "cercle", "hexagone"):
+    shape_keys = ("blason", "cercle", "hexagone", "coeur", "carre")
+    for idx, key in enumerate(shape_keys):
         tk.Radiobutton(fr, text=SHAPE_LABEL[key], variable=shape_var, value=key, bg=BG,
                        fg="#e5e7eb", selectcolor="#374151", activebackground=BG,
-                       font=("Segoe UI", 11)).pack(side="left", padx=6)
+                       font=("Segoe UI", 11)).grid(row=idx//3, column=idx % 3,
+                                                   sticky="w", padx=6, pady=2)
     tk.Label(t2, text="Icône en relief :", bg=BG, fg="#cbd5e1", font=("Segoe UI", 11)).pack(pady=(14, 2))
     icon_var = tk.StringVar(value="Aucune")
     iom = tk.OptionMenu(t2, icon_var, *[ICON_LABEL[i] for i in ICONS])

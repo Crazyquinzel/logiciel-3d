@@ -35,7 +35,7 @@ ONGLET « Médaille » :
               (ex. « JOYEUX ANNIVERSAIRE » sans le mot SUPER).
 
 ONGLET « Forme & déco » :
-  - Forme : Blason, Cercle ou Hexagone.
+  - Forme : Blason, Cercle, Hexagone, Cœur ou Carré arrondi.
   - Icône en relief : Aucune, Étoile, Cœur, Ballon de foot, Crayon, Marteau,
                       Clé (outils), Pomme, Couronne, Musique, Fleur (jardinage),
                       Voiture, Croix médicale.
