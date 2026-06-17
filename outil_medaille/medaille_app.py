@@ -142,17 +142,51 @@ def _crown(d, px, cx, cy, h):
         rr = h*0.075
         d.ellipse([px(bx-rr), px(by-rr), px(bx+rr), px(by+rr)], fill=255)
 
-ICONS =["aucun", "etoile", "coeur", "foot", "crayon", "marteau", "cle", "pomme", "couronne"]
+def _music(d, px, cx, cy, h):
+    hw = h*0.36; hh = h*0.27; hcx = cx-h*0.10; hcy = cy+h*0.30
+    d.ellipse([px(hcx-hw/2), px(hcy-hh/2), px(hcx+hw/2), px(hcy+hh/2)], fill=255)  # tête
+    sx = hcx+hw/2-h*0.05
+    d.rectangle([px(sx-h*0.05), px(cy-h*0.44), px(sx+h*0.05), px(hcy)], fill=255)  # hampe
+    d.polygon([(px(sx+h*0.05), px(cy-h*0.44)), (px(sx+h*0.30), px(cy-h*0.18)),
+               (px(sx+h*0.05), px(cy-h*0.06))], fill=255)                          # crochet
+
+def _flower(d, px, cx, cy, h):
+    cyf = cy-h*0.14; pr = h*0.30; petal = h*0.155
+    d.rectangle([px(cx-h*0.045), px(cyf), px(cx+h*0.045), px(cy+h*0.5)], fill=255)  # tige
+    d.ellipse([px(cx), px(cy+h*0.16), px(cx+h*0.24), px(cy+h*0.34)], fill=255)      # feuille
+    for i in range(6):
+        a = i*math.pi/3 - math.pi/2
+        pxc = cx+pr*math.cos(a); pyc = cyf+pr*math.sin(a)
+        d.ellipse([px(pxc-petal), px(pyc-petal), px(pxc+petal), px(pyc+petal)], fill=255)
+    d.ellipse([px(cx-h*0.115), px(cyf-h*0.115), px(cx+h*0.115), px(cyf+h*0.115)], fill=0)  # cœur creux
+
+def _car(d, px, cx, cy, h):
+    bw = h*0.98; btop = cy-h*0.08; bbot = cy+h*0.20
+    d.rounded_rectangle([px(cx-bw/2), px(btop), px(cx+bw/2), px(bbot)], radius=px(h*0.10), fill=255)
+    d.polygon([(px(cx-bw*0.26), px(btop)), (px(cx-bw*0.13), px(cy-h*0.34)),
+               (px(cx+bw*0.17), px(cy-h*0.34)), (px(cx+bw*0.30), px(btop))], fill=255)  # toit
+    wr = h*0.16
+    for wx in (cx-bw*0.27, cx+bw*0.27):
+        d.ellipse([px(wx-wr), px(bbot-wr*0.5), px(wx+wr), px(bbot+wr*1.5)], fill=255)
+
+def _cross(d, px, cx, cy, h):
+    a = h*0.30; L = h*0.50
+    d.rectangle([px(cx-a/2), px(cy-L), px(cx+a/2), px(cy+L)], fill=255)
+    d.rectangle([px(cx-L), px(cy-a/2), px(cx+L), px(cy+a/2)], fill=255)
+
+ICONS = ["aucun", "etoile", "coeur", "foot", "crayon", "marteau", "cle", "pomme",
+         "couronne", "musique", "fleur", "voiture", "sante"]
 ICON_LABEL = {"aucun":"Aucune", "etoile":"Étoile", "coeur":"Cœur", "foot":"Ballon de foot",
               "crayon":"Crayon", "marteau":"Marteau", "cle":"Clé (outils)", "pomme":"Pomme",
-              "couronne":"Couronne"}
+              "couronne":"Couronne", "musique":"Musique", "fleur":"Fleur (jardinage)",
+              "voiture":"Voiture", "sante":"Croix médicale"}
 
 ROLES = ["PAPA","PAPI","MAMAN","MAMIE","TONTON","TATIE","PARRAIN","MARRAINE",
          "PROF","MAÎTRE","MAÎTRESSE","ATSEM"]
 SHAPE_LABEL = {"blason":"Blason", "cercle":"Cercle", "hexagone":"Hexagone"}
 
 
-def generate_stl(prenom, role, shape, icon, outdir):
+def generate_stl(prenom, role, shape, icon, outdir, show_super=True):
     prenom = (prenom or "").strip().upper()
     role = (role or "PAPA").strip().upper()
     shape = (shape or "blason").lower()
@@ -196,8 +230,12 @@ def generate_stl(prenom, role, shape, icon, outdir):
     rrect(40, 9, 4.5, H_LISERE); rrect(40-2.4, 9-2.4, 3.3, BASE)
     # textes
     stamp(text_mask(prenom, cy, 5.0, max_w_mm=34.0), H_RELIEF)
-    stamp(text_mask("SUPER", cfg["super_y"], 9.0), H_RELIEF)
-    stamp(text_mask(role, cfg["role_y"], 13.0, max_w_mm=48.0), H_RELIEF)
+    if show_super:
+        stamp(text_mask("SUPER", cfg["super_y"], 9.0), H_RELIEF)
+        stamp(text_mask(role, cfg["role_y"], 13.0, max_w_mm=48.0), H_RELIEF)
+    else:
+        my = (cfg["super_y"] + cfg["role_y"]) / 2.0
+        stamp(text_mask(role, my, 14.0, max_w_mm=50.0), H_RELIEF)
     # icône
     if icon and icon != "aucun":
         icx, icy, ich = CX, cfg["icon_y"], cfg["icon_h"]
@@ -218,7 +256,8 @@ def generate_stl(prenom, role, shape, icon, outdir):
         else:
             m, d = newmask()
             {"etoile":_star, "coeur":_heart, "crayon":_pencil, "marteau":_hammer,
-             "cle":_wrench, "pomme":_apple, "couronne":_crown}[icon](d, px, icx, icy, ich)
+             "cle":_wrench, "pomme":_apple, "couronne":_crown, "musique":_music,
+             "fleur":_flower, "voiture":_car, "sante":_cross}[icon](d, px, icx, icy, ich)
             stamp(m, H_RELIEF)
     # fente ruban (trou traversant)
     m, d = newmask()
@@ -249,7 +288,8 @@ def generate_stl(prenom, role, shape, icon, outdir):
 
     os.makedirs(outdir, exist_ok=True)
     extra = "" if icon in ("", "aucun") else "_" + icon
-    path = os.path.join(outdir, f"medaille_super_{rslug}_{slug}_{shape}{extra}.stl")
+    pre = "super_" if show_super else ""
+    path = os.path.join(outdir, f"medaille_{pre}{rslug}_{slug}_{shape}{extra}.stl")
     with open(path, "wb") as f:
         f.write(b"medaille personnalisee".ljust(80, b" "))
         f.write(struct.pack("<I", len(tris)))
@@ -268,7 +308,7 @@ def run_gui():
     BG = "#1f2937"
     root = tk.Tk()
     root.title("Médaille personnalisée")
-    root.geometry("440x430"); root.configure(bg=BG); root.resizable(False, False)
+    root.geometry("460x520"); root.configure(bg=BG); root.resizable(False, False)
 
     tk.Label(root, text="🏅  Médaille personnalisée", bg=BG, fg="#f3f4f6",
              font=("Segoe UI", 15, "bold")).pack(pady=(14, 8))
@@ -283,11 +323,18 @@ def run_gui():
     e.pack(pady=2); e.focus()
     tk.Label(t1, text="Mention :", bg=BG, fg="#cbd5e1", font=("Segoe UI", 11)).pack(pady=(10, 2))
     role_var = tk.StringVar(value="PAPA")
-    om = tk.OptionMenu(root, role_var, *ROLES); om.destroy()  # placeholder
     om = tk.OptionMenu(t1, role_var, *ROLES)
     om.config(font=("Segoe UI", 11), bg="#374151", fg="white", highlightthickness=0,
               relief="flat", width=14); om["menu"].config(bg="#374151", fg="white")
     om.pack(pady=2)
+    tk.Label(t1, text="… ou mention personnalisée (texte libre) :", bg=BG, fg="#94a3b8",
+             font=("Segoe UI", 9)).pack(pady=(8, 1))
+    custom_var = tk.StringVar()
+    tk.Entry(t1, textvariable=custom_var, font=("Segoe UI", 12), justify="center",
+             width=22).pack(pady=1)
+    super_var = tk.BooleanVar(value=True)
+    tk.Checkbutton(t1, text="Garder le mot « SUPER »", variable=super_var, bg=BG, fg="#e5e7eb",
+                   selectcolor="#374151", activebackground=BG, font=("Segoe UI", 10)).pack(pady=(6, 0))
     nb.add(t1, text="  Médaille  ")
 
     # --- onglet 2 : forme & déco ---
@@ -315,9 +362,11 @@ def run_gui():
         if not name:
             messagebox.showwarning("Prénom vide", "Tape d'abord un prénom."); return
         icon_key = next((k for k, v in ICON_LABEL.items() if v == icon_var.get()), "aucun")
+        mention = custom_var.get().strip() or role_var.get()
         status.config(text="Génération en cours…", fg="#93c5fd"); root.update()
         try:
-            path, ntri = generate_stl(name, role_var.get(), shape_var.get(), icon_key, OUTDIR)
+            path, ntri = generate_stl(name, mention, shape_var.get(), icon_key, OUTDIR,
+                                      show_super=super_var.get())
         except Exception as ex:
             status.config(text="Erreur : %s" % ex, fg="#fca5a5"); return
         status.config(text="✅ Créé : %s" % os.path.basename(path), fg="#86efac")

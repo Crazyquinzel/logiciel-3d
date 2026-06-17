@@ -27,13 +27,18 @@ La 1ère fois, l'outil installe tout seul "Pillow" (quelques secondes).
 ------------------------------------------------------------
 ONGLET « Médaille » :
   - Prénom : tape le prénom (ex. Lucas). Les prénoms longs se réduisent tout seuls.
-  - Mention : PAPA, PAPI, MAMAN, MAMIE, TONTON, TATIE, PARRAIN, MARRAINE,
-              PROF, MAÎTRE, MAÎTRESSE, ATSEM.
+  - Mention : liste rapide (PAPA, PAPI, MAMAN, MAMIE, TONTON, TATIE, PARRAIN,
+              MARRAINE, PROF, MAÎTRE, MAÎTRESSE, ATSEM)
+  - … OU mention personnalisée : tape n'importe quel texte (ex. CHAMPION,
+              INFIRMIÈRE, JOYEUX ANNIVERSAIRE…). S'il est rempli, il remplace la liste.
+  - Case « Garder le mot SUPER » : décoche-la pour une mention seule, centrée
+              (ex. « JOYEUX ANNIVERSAIRE » sans le mot SUPER).
 
 ONGLET « Forme & déco » :
   - Forme : Blason, Cercle ou Hexagone.
-  - Icône en relief : Aucune, Étoile, Cœur, Ballon de foot, Crayon,
-                      Marteau, Clé (outils), Pomme, Couronne.
+  - Icône en relief : Aucune, Étoile, Cœur, Ballon de foot, Crayon, Marteau,
+                      Clé (outils), Pomme, Couronne, Musique, Fleur (jardinage),
+                      Voiture, Croix médicale.
 
 Puis clique « Créer le fichier STL ».
 ➡️ Le fichier apparaît dans le sous-dossier « STL » et le dossier s'ouvre.
