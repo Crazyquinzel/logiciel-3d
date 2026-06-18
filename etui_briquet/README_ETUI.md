@@ -40,6 +40,8 @@ anneau Ø6 ext / Ø3,5 int (vertical, plan XZ)
 - ⚠️ **Pointes de flamme en surplomb** : activer les supports, OU imprimer le couvercle couché.
   (L'avertissement « régions flottantes » de BambuStudio n'est PAS une erreur de fichier.)
 - **Test à faire** : valider le vissage (jeu 0,4 mm — élargir/réduire si trop serré/lâche).
+- Paroi du col portée à ~1,1 mm (alésage Ø21,5) pour éviter la « couche vide » au slicing.
+  → vérifier que le **haut effilé du briquet** passe dans le col ; sinon agrandir via `root_r-1.1`.
 
 ## État
 - [x] Clipper régénéré, 2 pièces watertight, flamme stylisée recréée, anneau OK

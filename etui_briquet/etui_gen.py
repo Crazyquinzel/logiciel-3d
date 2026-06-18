@@ -33,7 +33,8 @@ def build_corps():
                   external=True, end_finishes=("fade","fade"), hand="right")
     root_r=ext.min_radius
     z_col=CORPS_H+TRANS_H
-    bore_r=min(IN_X, root_r-0.4)
+    # paroi du col >= ~1.1 mm pour rester imprimable (evite la "couche vide" a la base du col)
+    bore_r=min(IN_X, root_r-1.1)
     with BuildPart() as corps:
         with BuildSketch(Plane.XY): Ellipse(OUT_X, OUT_Y)
         extrude(amount=CORPS_H)
