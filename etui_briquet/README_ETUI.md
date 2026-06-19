@@ -50,10 +50,24 @@ mis **en relief** (projetés sur la face bombée) sur l'avant du corps — gros,
 (`couv_b123.stl`) et réutilisé → seules les commandes régénèrent le corps gravé.
 CLI : `python perso_app.py "DAD" "JULIEN" coeur`.
 
+**Texte/motif dans une autre couleur** : case à cocher « Texte/motif dans une AUTRE couleur ».
+`build_corps(..., split_relief=True)` renvoie le corps et le relief (texte+motif) comme
+**2 solides séparés** → exportés en 2 fichiers (`corps_base_*.stl` + `corps_motif_*.stl`),
+à importer comme 2 objets distincts dans le slicer pour leur assigner chacun une couleur AMS
+(même principe que corps/couvercle séparés). Le fichier `_FINAL.stl` reste fourni pour
+une impression simple en 1 couleur (corps + relief + couvercle déjà assemblés).
+
+## Couvercle (finitions)
+- Contour de la flamme légèrement arrondi (`FLAME_FILLET=0.3mm`) : silhouette moins « découpée au cutter », plus polie.
+- Chanfrein en haut (jonction flamme, 1.6mm) **et** en bas (entrée de vissage, 0.8mm) de la jupe.
+- Chanfrein du trou porte-clés (0.4mm) pour un bord moins vif au toucher.
+
 ## État
 - [x] Clipper régénéré, 2 pièces watertight, flamme stylisée, trou porte-clés
 - [x] Col épaissi (plus de « couche vide »)
 - [x] Appli de personnalisation (texte 1-2 lignes + motif gravé)
+- [x] Couvercle affiné (contour arrondi, chanfreins haut/bas)
+- [x] Texte/motif exportable dans une couleur séparée (AMS)
 - [ ] Test d'impression du filetage (en cours)
 - [ ] Variantes Bic standard + Bic Mini
 

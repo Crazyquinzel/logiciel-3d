@@ -21,8 +21,10 @@ def _slug(*parts):
     clean=[re.sub(r"[^A-Za-z0-9]+","",p) for p in parts]
     return "_".join(p for p in clean if p) or "etui"
 
-def generate(lines, motif, outdir, status=lambda s: None, font="pixel"):
-    """Construit le corps grave + assemble avec le couvercle. Retourne le chemin du plateau."""
+def generate(lines, motif, outdir, status=lambda s: None, font="pixel", color_split=False):
+    """Construit le corps grave + assemble avec le couvercle. Retourne le chemin du plateau.
+    color_split=True -> exporte aussi le texte/motif en relief a part (corps_relief_*.stl),
+    pour pouvoir l'imprimer dans une AUTRE couleur AMS que le corps (objets separes au slicer)."""
     from build123d import export_stl
     import trimesh
     import etui_gen as E
@@ -37,23 +39,36 @@ def generate(lines, motif, outdir, status=lambda s: None, font="pixel"):
 
     status("Construction du corps en relief… (~1 min)")
     try:
-        corps=E.build_corps(lines=lines, motif=motif, font=font)
+        base, relief = E.build_corps(lines=lines, motif=motif, font=font, split_relief=True)
     except Exception:
         if font!="standard":
             status("Police pixel indispo pour ces caractères → police standard")
-            corps=E.build_corps(lines=lines, motif=motif, font="standard")
+            base, relief = E.build_corps(lines=lines, motif=motif, font="standard", split_relief=True)
         else:
             raise
-    corps_path=os.path.join(outdir, f"corps_{slug}.stl")
-    export_stl(corps, corps_path)
+
+    relief_path=None
+    if color_split and relief is not None:
+        base_path=os.path.join(outdir, f"corps_base_{slug}.stl")
+        relief_path=os.path.join(outdir, f"corps_motif_{slug}.stl")
+        export_stl(base, base_path)
+        export_stl(relief, relief_path)
+        corps_path=base_path
+    else:
+        corps=base+relief if relief is not None else base
+        corps_path=os.path.join(outdir, f"corps_{slug}.stl")
+        export_stl(corps, corps_path)
 
     status("Assemblage du plateau…")
     mc=trimesh.load(corps_path); ml=trimesh.load(couv_cache)
     ml.apply_translation([E.SKIRT_OR+E.OUT_X+6, 0, 0])
-    plate=trimesh.util.concatenate([mc, ml])
+    parts=[mc, ml]
+    if relief_path:
+        mr=trimesh.load(relief_path); parts.append(mr)
+    plate=trimesh.util.concatenate(parts)
     final=os.path.join(outdir, f"etui_{slug}_FINAL.stl")
     plate.export(final)
-    return final
+    return final, relief_path
 
 # ----------------------------- INTERFACE -----------------------------
 def run_gui():
@@ -62,7 +77,7 @@ def run_gui():
     OUTDIR=os.path.join(HERE,"STL")
     BG="#1f2937"
     root=tk.Tk(); root.title("Étui briquet — Personnalisation")
-    root.geometry("440x490"); root.configure(bg=BG); root.resizable(False,False)
+    root.geometry("440x520"); root.configure(bg=BG); root.resizable(False,False)
 
     tk.Label(root,text="🔥  Étui briquet flamme",bg=BG,fg="#f3f4f6",
              font=("Segoe UI",15,"bold")).pack(pady=(14,2))
@@ -104,6 +119,12 @@ def run_gui():
                highlightthickness=0,width=11); om3["menu"].config(bg="#374151",fg="white")
     om3.pack(side="left",padx=6)
 
+    cv=tk.BooleanVar(value=False)
+    cb=tk.Checkbutton(root,text="Texte/motif dans une AUTRE couleur (fichier séparé pour l'AMS)",
+                       variable=cv,bg=BG,fg="#cbd5e1",selectcolor="#374151",
+                       activebackground=BG,activeforeground="#cbd5e1",
+                       font=("Segoe UI",9)); cb.pack(pady=(10,0))
+
     status=tk.Label(root,text="",bg=BG,fg="#93c5fd",font=("Segoe UI",9),
                     wraplength=400,justify="center"); status.pack(pady=(10,0))
     btn_holder={}
@@ -115,8 +136,11 @@ def run_gui():
         motif=dict(MOTIFS)[mv.get()]
         font="pixel" if fv.get()=="Pixel" else "standard"
         try:
-            final=generate(lines, motif, OUTDIR, set_status, font=font)
-            set_status("✅ Créé : "+os.path.basename(final))
+            final, relief_path=generate(lines, motif, OUTDIR, set_status, font=font, color_split=cv.get())
+            if relief_path:
+                set_status("✅ Créé : "+os.path.basename(final)+" + "+os.path.basename(relief_path)+" (texte/motif a part)")
+            else:
+                set_status("✅ Créé : "+os.path.basename(final))
             try:
                 if sys.platform.startswith("win"): os.startfile(OUTDIR)   # noqa
                 elif sys.platform=="darwin": os.system('open "%s"'%OUTDIR)
@@ -144,6 +168,6 @@ def run_gui():
 if __name__=="__main__":
     if len(sys.argv)>1:   # CLI : python perso_app.py "DAD" "JULIEN" coeur
         a=sys.argv+["","",""]
-        print(generate([a[1],a[2]], a[3], os.path.join(HERE,"STL"), print))
+        print(generate([a[1],a[2]], a[3], os.path.join(HERE,"STL"), print, color_split=True))
     else:
         run_gui()

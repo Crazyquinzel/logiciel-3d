@@ -28,6 +28,7 @@ SKIRT_H=13.0; CEIL=2.0
 FLAME_H=32.0; FLAME_T=16.0; OVERLAP=2.5
 HOLE_DROP = 6.0                      # trou perce a 6 mm sous la pointe de la flamme
 HOLE_R = 2.0                         # rayon du trou porte-cles (Ø4 max, reduit auto si peu de matiere)
+FLAME_FILLET = 0.3                   # arrondi du contour de la flamme (finition polie)
 FONT = os.path.join(HERE, "DejaVuSans-Bold.ttf")
 FONT_PIXEL = os.path.join(HERE, "PressStart2P.ttf")
 FONTS = {"pixel": FONT_PIXEL, "standard": FONT}
@@ -81,7 +82,9 @@ def _motif_pts(name, size):
         return [right,left]
     return None
 
-def build_corps(lines=None, motif="", font="pixel", engrave_depth=None):
+def build_corps(lines=None, motif="", font="pixel", engrave_depth=None, split_relief=False):
+    """split_relief=True -> renvoie (base, relief) separes (relief=None si pas de texte/motif),
+    pour pouvoir imprimer le texte/motif dans une AUTRE couleur (AMS) que le corps."""
     ext=IsoThread(major_diameter=COL_MAJOR, pitch=PITCH, length=THREAD_LEN,
                   external=True, end_finishes=("fade","fade"), hand="right")
     root_r=ext.min_radius
@@ -106,7 +109,7 @@ def build_corps(lines=None, motif="", font="pixel", engrave_depth=None):
     rows=[r for r in (lines or []) if r.strip()]
     mouts=_motif_pts(motif, MOTIF_SIZE)
     if not rows and not mouts:
-        return base
+        return (base, None) if split_relief else base
     gap=2.2; n=len(rows); rh=ROW_H if n<=1 else ROW_H-1.5
     text_h=(n*rh+(n-1)*gap) if rows else 0.0
     total=text_h + (MOTIF_SIZE+gap if mouts else 0.0)
@@ -149,6 +152,12 @@ def build_corps(lines=None, motif="", font="pixel", engrave_depth=None):
                 except Exception:
                     continue
                 solids.append(s)
+    if split_relief:
+        relief=None
+        for s in solids:
+            try: relief=s if relief is None else relief+s
+            except Exception: pass
+        return base, relief
     res=base
     for s in solids:
         try: res=res+s
@@ -166,6 +175,10 @@ def build_couvercle():
             with BuildLine(): Polyline(flame_pts, close=True)
             make_face()
         extrude(amount=FLAME_T/2, both=True)
+        # arrondi du contour (silhouette moins "decoupee au cutter", plus poli)
+        perim=[e for e in fp.part.edges().filter_by(GeomType.LINE) if abs(e.length-FLAME_T)<0.05]
+        try: fillet(perim, FLAME_FILLET)
+        except Exception: pass
     flame=fp.part.moved(Location((0,0,SKIRT_H-OVERLAP)))
     tip_z=tip_z0+(SKIRT_H-OVERLAP)
     # ----- trou traversant pour anneau porte-cles, pres du haut de la flamme -----
@@ -179,14 +192,21 @@ def build_couvercle():
     with BuildPart() as lid:
         with BuildSketch(Plane.XY): Circle(SKIRT_OR)
         extrude(amount=SKIRT_H)
-        try:
-            chamfer(lid.edges().filter_by(GeomType.CIRCLE).group_by(Axis.Z)[-1], 1.6)
+        zedges=lid.edges().filter_by(GeomType.CIRCLE).group_by(Axis.Z)
+        try: chamfer(zedges[-1], 1.6)              # haut (jonction flamme) - poli
+        except Exception: pass
+        try: chamfer(zedges[0], 0.8)                # bas (entree de visse) - plus discret
         except Exception: pass
         with BuildSketch(Plane.XY): Circle(FEM_MAJOR/2)
         extrude(amount=SKIRT_H-CEIL, mode=Mode.SUBTRACT)
         add(fem.moved(Location((0,0,1.0))))
         add(flame)
         add(hole, mode=Mode.SUBTRACT)
+        # chanfrein du trou porte-cles (confort, pas d'arete vive au toucher)
+        try:
+            hedges=lid.edges().filter_by(GeomType.CIRCLE).filter_by(lambda e: abs(e.radius-hole_r)<0.05)
+            chamfer(hedges, 0.4)
+        except Exception: pass
     return lid.part
 
 def check(path):

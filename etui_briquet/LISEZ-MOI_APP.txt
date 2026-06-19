@@ -25,10 +25,15 @@ https://www.python.org/downloads/  → Windows : COCHE "Add Python to PATH".
 - Tape 1 ou 2 lignes (ex. "SUPER" / "PAPA"), ou choisis un préréglage.
 - Choisis un motif (Cœur, Étoile, Couronne, Moustache) — en relief au-dessus.
 - Choisis la POLICE : Pixel (rétro, par défaut) ou Standard.
+- Coche "Texte/motif dans une AUTRE couleur" si tu veux imprimer le texte/symbole
+  dans une couleur différente du corps (AMS) : 2 fichiers séparés sont alors créés
+  (corps_base_... + corps_motif_...) en plus du fichier complet, à importer comme
+  2 objets distincts dans ton logiciel de découpe (slicer) pour leur donner chacun
+  une couleur.
 - Clique "Créer le fichier STL".
   → La génération prend ~1 à 2 min (filetage + gravure). Patiente.
-  → Le fichier apparaît dans le sous-dossier  STL/  (etui_..._FINAL.stl)
-    et le dossier s'ouvre tout seul.
+  → Le(s) fichier(s) apparaissent dans le sous-dossier  STL/  (etui_..._FINAL.stl,
+    + corps_base_/corps_motif_ si la case couleur est cochée) et le dossier s'ouvre tout seul.
 - Imprime comme d'habitude (supports pour la flamme). Le trou porte-clés en
   haut de la flamme est traversant : insère ton propre anneau dedans.
 
