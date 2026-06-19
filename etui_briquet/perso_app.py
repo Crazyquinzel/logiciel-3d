@@ -4,7 +4,7 @@
 L'Atelier Pixelisé — Personnalisation de l'étui briquet flamme (Clipper).
 Tape 1 à 2 lignes de texte + un motif → grave en creux sur le corps et génère le STL.
 
-Le COUVERCLE (flamme + arceau) ne change pas : il est construit une seule fois et réutilisé.
+Le COUVERCLE (flamme + trou porte-clés) ne change pas : il est construit une seule fois et réutilisé.
 Seul le CORPS (gravé) est régénéré à chaque commande.
 
 Dépendances : build123d, bd_warehouse, trimesh, numpy, pillow
