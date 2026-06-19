@@ -31,10 +31,10 @@ NECK_R = 2.5                         # col de liaison flamme<->arceau
 FONT = os.path.join(HERE, "DejaVuSans-Bold.ttf")
 FONT_PIXEL = os.path.join(HERE, "PressStart2P.ttf")
 FONTS = {"pixel": FONT_PIXEL, "standard": FONT}
-TEXT_ZC = 30.0                       # hauteur du bloc texte sur le tube
-TEXT_W, ROW_H = 22.0, 9.0            # largeur/hauteur max d'une ligne (mm)
-MOTIF_SIZE = 12.0                    # taille du motif (mm)
-EMBOSS_H = 1.0                       # hauteur du relief (mm)
+TEXT_ZC = 29.0                       # hauteur du bloc texte sur le tube
+TEXT_W, ROW_H = 26.0, 14.0           # largeur/hauteur max d'une ligne (mm)
+MOTIF_SIZE = 13.0                    # taille du motif (mm)
+EMBOSS_H = 1.2                       # hauteur du relief (mm)
 
 def _fit_font_size(s, max_w, max_h, font_path):
     from PIL import ImageFont
@@ -127,14 +127,33 @@ def build_corps(lines=None, motif="", font="pixel", engrave_depth=None):
         with BuildSketch(Plane.XY) as tsk:
             Text(row, font_size=fs, font_path=fontpath)
         feats.append((tsk.sketch, z0-i*(rh+gap)))
-    emb=None
+    solids=[]
     for sketch,zc in feats:
         plane=Plane(origin=(0,OUT_Y+6,zc), x_dir=(-1,0,0), z_dir=(0,1,0))
         for f in plane.from_local_coords(sketch).faces():
             for pf in f.project_to_shape(base, direction=(0,-1,0)):
-                s=extrude(pf, amount=EMBOSS_H, dir=(0,1,0))
-                emb = s if emb is None else emb+s
-    return base+emb if emb is not None else base
+                ctr=pf.center()
+                try: ny=pf.normal_at(ctr).Y
+                except Exception:
+                    try: ny=pf.normal_at().Y
+                    except Exception: ny=1.0
+                if ctr.Y<=0 or ny<=0.2:        # garder UNIQUEMENT la face avant exterieure
+                    continue
+                try:
+                    s=extrude(pf, amount=EMBOSS_H, dir=(0,1,0))
+                except Exception:
+                    continue
+                if s is None or getattr(s,"wrapped",None) is None: continue
+                try:
+                    if s.volume < 1e-6: continue
+                except Exception:
+                    continue
+                solids.append(s)
+    res=base
+    for s in solids:
+        try: res=res+s
+        except Exception: pass
+    return res
 
 def build_couvercle():
     fem=IsoThread(major_diameter=FEM_MAJOR, pitch=PITCH, length=THREAD_LEN,
