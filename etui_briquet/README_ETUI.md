@@ -9,7 +9,7 @@ Reconstruction du projet (l'environnement se réinitialise entre sessions → to
 | `flame_profile.py` | Silhouette de la flamme stylisée (modifiable) |
 | `render_stl.py` | Aperçus PNG ombrés (sans GPU) |
 | `corps_b123.stl` | Corps seul (col + filetage mâle M27×3) |
-| `couv_b123.stl` | Couvercle flamme (filetage femelle + anneau) |
+| `couv_b123.stl` | Couvercle flamme (filetage femelle + arceau D) |
 | `etui_clipper_FINAL.stl` ⭐ | Les 2 pièces sur 1 plateau — **à imprimer** |
 | `view_overview.png` | Aperçu (corps / assemblé) |
 
@@ -25,13 +25,13 @@ python3 render_stl.py etui_clipper_FINAL.stl vue.png "(-75,0,28)"
 - Filetage **ISO M27×3**, `end_finishes=("fade","fade")` (obligatoire pour l'étanchéité)
 - **Jeu 0,4 mm** : femelle = Ø27,4 / mâle = Ø27 → ~0,2 mm radial de chaque côté
 - Corps : tube ovale → transition loft → col, **puis** cavité creusée → reste watertight
-- Couvercle : cloche (jupe) filetée femelle + flamme extrudée + anneau (tore, plan XZ)
+- Couvercle : cloche (jupe) filetée femelle + flamme extrudée + arceau D robuste (plan XZ)
 
 ## Paramètres clés (`etui_gen.py`)
 ```
 WALL=2.5  CLR=1.0  briquet 22×18  CORPS_H=52  TRANS_H=6
 M27×3  THREAD_LEN=9  JEU=0.4  FLAME_H=32  FLAME_T=16
-anneau Ø6 ext / Ø3,5 int (vertical, plan XZ)
+arceau porte-clés en D : tube Ø4 mm, ouverture Ø6 mm (robuste)
 ```
 
 ## Impression (Bambu Lab P1S)

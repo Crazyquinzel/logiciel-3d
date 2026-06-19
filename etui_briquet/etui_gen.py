@@ -26,7 +26,8 @@ COL_MAJOR=27.0; FEM_MAJOR=COL_MAJOR+JEU
 SKIRT_WALL=2.5; SKIRT_OR=FEM_MAJOR/2+SKIRT_WALL
 SKIRT_H=13.0; CEIL=2.0
 FLAME_H=32.0; FLAME_T=16.0; OVERLAP=2.5
-RING_MR, RING_mr = 2.375, 0.625      # anneau O6 ext / O3.5 int
+BAIL_R, BAIL_r = 5.0, 2.0            # arceau D : rayon axe 5, tube R2 (Ø4) -> ouverture Ø6, hors-tout Ø14
+NECK_R = 2.5                         # col de liaison flamme<->arceau
 
 def build_corps():
     ext=IsoThread(major_diameter=COL_MAJOR, pitch=PITCH, length=THREAD_LEN,
@@ -63,6 +64,14 @@ def build_couvercle():
         extrude(amount=FLAME_T/2, both=True)
     flame=fp.part.moved(Location((0,0,SKIRT_H-OVERLAP)))
     tip_z=tip_z0+(SKIRT_H-OVERLAP)
+    # ----- arceau porte-cles robuste (demi-cercle en D), construit hors du builder -----
+    z_bar=tip_z+3.0
+    arch=Torus(BAIL_R, BAIL_r).rotate(Axis.X, 90)
+    arch=arch & Box(60,60,60).moved(Location((0,0,30)))          # moitie haute (z>=0)
+    arch=arch.moved(Location((tip_x,0,z_bar)))
+    bar =Cylinder(BAIL_r, 2*BAIL_R).rotate(Axis.Y, 90).moved(Location((tip_x,0,z_bar)))
+    neck=Cylinder(NECK_R, 6.0).moved(Location((tip_x,0,tip_z-1.0)))
+    bail=arch + bar + neck
     with BuildPart() as lid:
         with BuildSketch(Plane.XY): Circle(SKIRT_OR)
         extrude(amount=SKIRT_H)
@@ -73,7 +82,7 @@ def build_couvercle():
         extrude(amount=SKIRT_H-CEIL, mode=Mode.SUBTRACT)
         add(fem.moved(Location((0,0,1.0))))
         add(flame)
-        add(Torus(RING_MR, RING_mr).rotate(Axis.X,90).moved(Location((tip_x,0,tip_z+1.5))))
+        add(bail)
     return lid.part
 
 def check(path):
