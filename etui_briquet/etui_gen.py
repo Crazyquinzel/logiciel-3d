@@ -29,9 +29,10 @@ FLAME_H=32.0; FLAME_T=16.0; OVERLAP=2.5
 BAIL_R, BAIL_r = 5.0, 2.0            # arceau D : rayon axe 5, tube R2 (Ø4) -> ouverture Ø6, hors-tout Ø14
 NECK_R = 2.5                         # col de liaison flamme<->arceau
 FONT = os.path.join(HERE, "DejaVuSans-Bold.ttf")
-ENGRAVE_Y = 10.8                     # fond de gravure (y), apex avant = OUT_Y(=12)
 TEXT_ZC = 30.0                       # hauteur du bloc texte sur le tube
-TEXT_W, ROW_H = 12.0, 5.5            # largeur/hauteur max d'une ligne (mm)
+TEXT_W, ROW_H = 22.0, 9.0            # largeur/hauteur max d'une ligne (mm)
+MOTIF_SIZE = 12.0                    # taille du motif (mm)
+EMBOSS_H = 1.0                       # hauteur du relief (mm)
 
 def _fit_font_size(s, max_w, max_h):
     from PIL import ImageFont
@@ -41,7 +42,7 @@ def _fit_font_size(s, max_w, max_h):
     return max(2.0, min(max_w/w, max_h/h))
 
 def _motif_pts(name, size):
-    """Contour (x,z) centre, hauteur ~ size. Pour gravure sur la face avant."""
+    """Renvoie une LISTE de contours (x,z) centres, hauteur ~ size, ou None."""
     import math
     name=(name or "").lower()
     if name in ("coeur","cœur","heart"):
@@ -51,25 +52,26 @@ def _motif_pts(name, size):
             x=16*math.sin(t)**3
             y=13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t)
             P.append((x,y))
-        sc=size/ (max(p[1] for p in P)-min(p[1] for p in P))
+        sc=size/(max(p[1] for p in P)-min(p[1] for p in P))
         cy=(max(p[1] for p in P)+min(p[1] for p in P))/2
-        return [(x*sc, (y-cy)*sc) for x,y in P]
+        return [[(x*sc,(y-cy)*sc) for x,y in P]]
     if name in ("etoile","étoile","star"):
         R=size/2; r=R*0.42; P=[]
         for i in range(10):
             a=math.pi/2 + i*math.pi/5; rad=R if i%2==0 else r
             P.append((rad*math.cos(a), rad*math.sin(a)))
-        return P
+        return [P]
     if name=="couronne":
         w=size*1.05; b=-size*0.40; band=b+size*0.28; top=size*0.5
-        return [(-w/2,b),(-w/2,band),(-w/4,top*0.55),(-w/8,band),(0,top),
-                (w/8,band),(w/4,top*0.55),(w/2,band),(w/2,b)]
+        return [[(-w/2,b),(-w/2,band),(-w/4,top*0.55),(-w/8,band),(0,top),
+                 (w/8,band),(w/4,top*0.55),(w/2,band),(w/2,b)]]
     if name=="moustache":
-        w=size*1.7; h=size*0.85
-        return [(-w/2,0.10*h),(-0.34*w,0.42*h),(-0.12*w,0.30*h),(0,0.36*h),
-                (0.12*w,0.30*h),(0.34*w,0.42*h),(w/2,0.10*h),
-                (0.40*w,-0.30*h),(0.22*w,-0.05*h),(0.10*w,-0.18*h),(0,-0.02*h),
-                (-0.10*w,-0.18*h),(-0.22*w,-0.05*h),(-0.40*w,-0.30*h)]
+        A=size*0.92; H=size*0.78
+        wing=[(0.10,-0.02),(0.05,0.18),(0.42,0.25),(0.78,0.21),(1.00,0.36),
+              (0.90,0.05),(0.55,-0.07),(0.30,-0.22),(0.16,-0.16)]
+        right=[(x*A,y*H) for x,y in wing]
+        left=[(-x*A,y*H) for x,y in wing]
+        return [right,left]
     return None
 
 def build_corps(lines=None, motif="", engrave_depth=None):
@@ -92,29 +94,39 @@ def build_corps(lines=None, motif="", engrave_depth=None):
         extrude(amount=CORPS_H-WALL, mode=Mode.SUBTRACT)
         with BuildSketch(Plane.XY.offset(CORPS_H)): Circle(bore_r)
         extrude(amount=TRANS_H+THREAD_LEN, mode=Mode.SUBTRACT)
-        # ----- gravure en creux sur la face avant (motif en haut + texte) -----
-        rows=[r for r in (lines or []) if r.strip()]
-        mpts=_motif_pts(motif, 9.0)
-        if rows or mpts:
-            depth=ENGRAVE_Y if engrave_depth is None else (OUT_Y-engrave_depth)
-            cut=-(OUT_Y-depth); gap=1.8; MSIZE=9.0
-            text_h=(len(rows)*ROW_H+(len(rows)-1)*gap) if rows else 0.0
-            total=text_h + (MSIZE+gap if mpts else 0.0)
-            ztop=TEXT_ZC + total/2
-            def front_plane(zc): return Plane(origin=(0,OUT_Y,zc), x_dir=(-1,0,0), z_dir=(0,1,0))
-            if mpts:
-                with BuildSketch(front_plane(ztop-MSIZE/2)):
-                    with BuildLine(): Polyline([(float(a),float(b)) for a,b in mpts], close=True)
-                    make_face()
-                extrude(amount=cut, mode=Mode.SUBTRACT)
-                ztop-=MSIZE+gap
-            z0=ztop-ROW_H/2
-            for i,row in enumerate(rows):
-                fs=_fit_font_size(row, TEXT_W, ROW_H)
-                with BuildSketch(front_plane(z0 - i*(ROW_H+gap))):
-                    Text(row, font_size=fs, font_path=FONT)
-                extrude(amount=cut, mode=Mode.SUBTRACT)
-    return corps.part
+    # ----- texte + motif en RELIEF (projetes sur la face bombee, puis extrudes) -----
+    base=corps.part
+    rows=[r for r in (lines or []) if r.strip()]
+    mouts=_motif_pts(motif, MOTIF_SIZE)
+    if not rows and not mouts:
+        return base
+    gap=2.2; n=len(rows); rh=ROW_H if n<=1 else ROW_H-1.5
+    text_h=(n*rh+(n-1)*gap) if rows else 0.0
+    total=text_h + (MOTIF_SIZE+gap if mouts else 0.0)
+    ztop=TEXT_ZC + total/2
+    feats=[]                                   # (sketch, z_centre)
+    if mouts:
+        zc=ztop-MOTIF_SIZE/2
+        for outline in mouts:
+            with BuildSketch(Plane.XY) as msk:
+                with BuildLine(): Polyline([(float(a),float(b)) for a,b in outline], close=True)
+                make_face()
+            feats.append((msk.sketch, zc))
+        ztop-=MOTIF_SIZE+gap
+    z0=ztop-rh/2
+    for i,row in enumerate(rows):
+        fs=_fit_font_size(row, TEXT_W, rh)
+        with BuildSketch(Plane.XY) as tsk:
+            Text(row, font_size=fs, font_path=FONT)
+        feats.append((tsk.sketch, z0-i*(rh+gap)))
+    emb=None
+    for sketch,zc in feats:
+        plane=Plane(origin=(0,OUT_Y+6,zc), x_dir=(-1,0,0), z_dir=(0,1,0))
+        for f in plane.from_local_coords(sketch).faces():
+            for pf in f.project_to_shape(base, direction=(0,-1,0)):
+                s=extrude(pf, amount=EMBOSS_H, dir=(0,1,0))
+                emb = s if emb is None else emb+s
+    return base+emb if emb is not None else base
 
 def build_couvercle():
     fem=IsoThread(major_diameter=FEM_MAJOR, pitch=PITCH, length=THREAD_LEN,

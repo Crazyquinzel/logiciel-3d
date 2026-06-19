@@ -46,7 +46,7 @@ arceau porte-clés en D : tube Ø4 mm, ouverture Ø6 mm (robuste)
 ## Personnalisation (appli)
 `perso_app.py` (+ `Etui_Windows.bat` / `Etui_Mac.command`, `LISEZ-MOI_APP.txt`) :
 fenêtre où l'on tape 1-2 lignes + un motif (Cœur, Étoile, Couronne, Moustache),
-gravés **en creux** sur la face avant du corps. Le couvercle est mis en cache
+mis **en relief** (projetés sur la face bombée) sur l'avant du corps — gros, lisibles, et possibles en 2e couleur AMS. Le couvercle est mis en cache
 (`couv_b123.stl`) et réutilisé → seules les commandes régénèrent le corps gravé.
 CLI : `python perso_app.py "DAD" "JULIEN" coeur`.
 
