@@ -23,15 +23,22 @@ https://www.python.org/downloads/  → Windows : COCHE "Add Python to PATH".
 3) PERSONNALISER
 ------------------------------------------------------------
 - Tape 1 ou 2 lignes (ex. "SUPER" / "PAPA"), ou choisis un préréglage.
-- Choisis un motif (Cœur, Étoile, Couronne, Moustache) — gravé au-dessus.
+- Choisis un motif (Cœur, Étoile, Couronne, Moustache) — en relief au-dessus.
+- Choisis la POLICE : Pixel (rétro, par défaut) ou Standard.
 - Clique "Créer le fichier STL".
   → La génération prend ~1 à 2 min (filetage + gravure). Patiente.
   → Le fichier apparaît dans le sous-dossier  STL/  (etui_..._FINAL.stl)
     et le dossier s'ouvre tout seul.
 - Imprime comme d'habitude (supports pour la flamme + l'arceau).
 
+Texte/motif sont en RELIEF (projetés sur la face bombée) -> gros et lisibles,
+imprimables en 2e couleur AMS.
+
 Le couvercle (flamme + arceau) est construit une seule fois puis réutilisé
 → seules les commandes changent le corps gravé.
 
 CLI (avancé) :  python perso_app.py "DAD" "JULIEN" coeur
 ============================================================
+
+
+Police pixel : « Press Start 2P » (SIL Open Font License, voir OFL_PressStart2P.txt).

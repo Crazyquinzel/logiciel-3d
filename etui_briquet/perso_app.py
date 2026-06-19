@@ -21,7 +21,7 @@ def _slug(*parts):
     clean=[re.sub(r"[^A-Za-z0-9]+","",p) for p in parts]
     return "_".join(p for p in clean if p) or "etui"
 
-def generate(lines, motif, outdir, status=lambda s: None):
+def generate(lines, motif, outdir, status=lambda s: None, font="pixel"):
     """Construit le corps grave + assemble avec le couvercle. Retourne le chemin du plateau."""
     from build123d import export_stl
     import trimesh
@@ -35,8 +35,15 @@ def generate(lines, motif, outdir, status=lambda s: None):
         status("Construction du couvercle (1re fois, ~1 min)…")
         export_stl(E.build_couvercle(), couv_cache)
 
-    status("Gravure et construction du corps… (~1 min)")
-    corps=E.build_corps(lines=lines, motif=motif)
+    status("Construction du corps en relief… (~1 min)")
+    try:
+        corps=E.build_corps(lines=lines, motif=motif, font=font)
+    except Exception:
+        if font!="standard":
+            status("Police pixel indispo pour ces caractères → police standard")
+            corps=E.build_corps(lines=lines, motif=motif, font="standard")
+        else:
+            raise
     corps_path=os.path.join(outdir, f"corps_{slug}.stl")
     export_stl(corps, corps_path)
 
@@ -55,7 +62,7 @@ def run_gui():
     OUTDIR=os.path.join(HERE,"STL")
     BG="#1f2937"
     root=tk.Tk(); root.title("Étui briquet — Personnalisation")
-    root.geometry("440x430"); root.configure(bg=BG); root.resizable(False,False)
+    root.geometry("440x490"); root.configure(bg=BG); root.resizable(False,False)
 
     tk.Label(root,text="🔥  Étui briquet flamme",bg=BG,fg="#f3f4f6",
              font=("Segoe UI",15,"bold")).pack(pady=(14,2))
@@ -81,13 +88,21 @@ def run_gui():
     om.config(font=("Segoe UI",10),bg="#374151",fg="white",relief="flat",highlightthickness=0)
     om["menu"].config(bg="#374151",fg="white"); om.pack(side="left",padx=6)
 
-    tk.Label(root,text="Motif (gravé au-dessus du texte) :",bg=BG,fg="#cbd5e1",
-             font=("Segoe UI",11)).pack(pady=(12,2))
+    fr2=tk.Frame(root,bg=BG); fr2.pack(pady=(12,0))
+    tk.Label(fr2,text="Motif :",bg=BG,fg="#cbd5e1",font=("Segoe UI",11)).pack(side="left")
     mv=tk.StringVar(value="Aucun")
-    om2=tk.OptionMenu(root,mv,*[m[0] for m in MOTIFS])
+    om2=tk.OptionMenu(fr2,mv,*[m[0] for m in MOTIFS])
     om2.config(font=("Segoe UI",11),bg="#374151",fg="white",relief="flat",
-               highlightthickness=0,width=14); om2["menu"].config(bg="#374151",fg="white")
-    om2.pack(pady=2)
+               highlightthickness=0,width=11); om2["menu"].config(bg="#374151",fg="white")
+    om2.pack(side="left",padx=6)
+
+    fr3=tk.Frame(root,bg=BG); fr3.pack(pady=(8,0))
+    tk.Label(fr3,text="Police :",bg=BG,fg="#cbd5e1",font=("Segoe UI",11)).pack(side="left")
+    fv=tk.StringVar(value="Pixel")
+    om3=tk.OptionMenu(fr3,fv,"Pixel","Standard")
+    om3.config(font=("Segoe UI",11),bg="#374151",fg="white",relief="flat",
+               highlightthickness=0,width=11); om3["menu"].config(bg="#374151",fg="white")
+    om3.pack(side="left",padx=6)
 
     status=tk.Label(root,text="",bg=BG,fg="#93c5fd",font=("Segoe UI",9),
                     wraplength=400,justify="center"); status.pack(pady=(10,0))
@@ -98,8 +113,9 @@ def run_gui():
     def worker():
         lines=[l1.get().strip(), l2.get().strip()]
         motif=dict(MOTIFS)[mv.get()]
+        font="pixel" if fv.get()=="Pixel" else "standard"
         try:
-            final=generate(lines, motif, OUTDIR, set_status)
+            final=generate(lines, motif, OUTDIR, set_status, font=font)
             set_status("✅ Créé : "+os.path.basename(final))
             try:
                 if sys.platform.startswith("win"): os.startfile(OUTDIR)   # noqa

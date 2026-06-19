@@ -29,14 +29,16 @@ FLAME_H=32.0; FLAME_T=16.0; OVERLAP=2.5
 BAIL_R, BAIL_r = 5.0, 2.0            # arceau D : rayon axe 5, tube R2 (Ø4) -> ouverture Ø6, hors-tout Ø14
 NECK_R = 2.5                         # col de liaison flamme<->arceau
 FONT = os.path.join(HERE, "DejaVuSans-Bold.ttf")
+FONT_PIXEL = os.path.join(HERE, "PressStart2P.ttf")
+FONTS = {"pixel": FONT_PIXEL, "standard": FONT}
 TEXT_ZC = 30.0                       # hauteur du bloc texte sur le tube
 TEXT_W, ROW_H = 22.0, 9.0            # largeur/hauteur max d'une ligne (mm)
 MOTIF_SIZE = 12.0                    # taille du motif (mm)
 EMBOSS_H = 1.0                       # hauteur du relief (mm)
 
-def _fit_font_size(s, max_w, max_h):
+def _fit_font_size(s, max_w, max_h, font_path):
     from PIL import ImageFont
-    probe=100; f=ImageFont.truetype(FONT, probe)
+    probe=100; f=ImageFont.truetype(font_path, probe)
     b=f.getbbox(s); w=(b[2]-b[0])/probe; h=(b[3]-b[1])/probe
     if w<=0 or h<=0: return max_h
     return max(2.0, min(max_w/w, max_h/h))
@@ -62,9 +64,14 @@ def _motif_pts(name, size):
             P.append((rad*math.cos(a), rad*math.sin(a)))
         return [P]
     if name=="couronne":
-        w=size*1.05; b=-size*0.40; band=b+size*0.28; top=size*0.5
-        return [[(-w/2,b),(-w/2,band),(-w/4,top*0.55),(-w/8,band),(0,top),
-                 (w/8,band),(w/4,top*0.55),(w/2,band),(w/2,b)]]
+        # reprise de la couronne des medailles (bandeau + 3 pointes + billes)
+        h=size; w=h*0.94
+        crown=[(-w/2,-0.42*h),(-w/2,0.33*h),(-w/4,-0.13*h),(0,0.45*h),
+               (w/4,-0.13*h),(w/2,0.33*h),(w/2,-0.42*h)]
+        rr=0.085*h
+        def ball(cx,cz):
+            return [(cx+rr*math.cos(2*math.pi*k/16), cz+rr*math.sin(2*math.pi*k/16)) for k in range(16)]
+        return [crown, ball(0,0.45*h), ball(-w/2,0.33*h), ball(w/2,0.33*h)]
     if name=="moustache":
         A=size*0.92; H=size*0.78
         wing=[(0.10,-0.02),(0.05,0.18),(0.42,0.25),(0.78,0.21),(1.00,0.36),
@@ -74,7 +81,7 @@ def _motif_pts(name, size):
         return [right,left]
     return None
 
-def build_corps(lines=None, motif="", engrave_depth=None):
+def build_corps(lines=None, motif="", font="pixel", engrave_depth=None):
     ext=IsoThread(major_diameter=COL_MAJOR, pitch=PITCH, length=THREAD_LEN,
                   external=True, end_finishes=("fade","fade"), hand="right")
     root_r=ext.min_radius
@@ -113,11 +120,12 @@ def build_corps(lines=None, motif="", engrave_depth=None):
                 make_face()
             feats.append((msk.sketch, zc))
         ztop-=MOTIF_SIZE+gap
+    fontpath=FONTS.get(font, FONT_PIXEL)
     z0=ztop-rh/2
     for i,row in enumerate(rows):
-        fs=_fit_font_size(row, TEXT_W, rh)
+        fs=_fit_font_size(row, TEXT_W, rh, fontpath)
         with BuildSketch(Plane.XY) as tsk:
-            Text(row, font_size=fs, font_path=FONT)
+            Text(row, font_size=fs, font_path=fontpath)
         feats.append((tsk.sketch, z0-i*(rh+gap)))
     emb=None
     for sketch,zc in feats:
