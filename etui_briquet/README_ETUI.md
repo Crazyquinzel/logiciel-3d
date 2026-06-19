@@ -43,10 +43,18 @@ arceau porte-clés en D : tube Ø4 mm, ouverture Ø6 mm (robuste)
 - Paroi du col portée à ~1,1 mm (alésage Ø21,5) pour éviter la « couche vide » au slicing.
   → vérifier que le **haut effilé du briquet** passe dans le col ; sinon agrandir via `root_r-1.1`.
 
+## Personnalisation (appli)
+`perso_app.py` (+ `Etui_Windows.bat` / `Etui_Mac.command`, `LISEZ-MOI_APP.txt`) :
+fenêtre où l'on tape 1-2 lignes + un motif (Cœur, Étoile, Couronne, Moustache),
+gravés **en creux** sur la face avant du corps. Le couvercle est mis en cache
+(`couv_b123.stl`) et réutilisé → seules les commandes régénèrent le corps gravé.
+CLI : `python perso_app.py "DAD" "JULIEN" coeur`.
+
 ## État
-- [x] Clipper régénéré, 2 pièces watertight, flamme stylisée recréée, anneau OK
-- [ ] Test d'impression du filetage
-- [ ] Appli de personnalisation (texte + motif) — prochaine étape
+- [x] Clipper régénéré, 2 pièces watertight, flamme stylisée, arceau D robuste
+- [x] Col épaissi (plus de « couche vide »)
+- [x] Appli de personnalisation (texte 1-2 lignes + motif gravé)
+- [ ] Test d'impression du filetage (en cours)
 - [ ] Variantes Bic standard + Bic Mini
 
 *La flamme est volontairement « plate-relief » (option A, fiable). Pour plus de volume :

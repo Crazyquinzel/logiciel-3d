@@ -13,8 +13,8 @@ def render(path, out, rot=(-65,0,25), size=520, base=(255,150,40), bg=(28,32,40)
     if isinstance(m, trimesh.Scene): m=m.dump(concatenate=True)
     V=np.asarray(m.vertices); F=np.asarray(m.faces)
     R=_rot(*rot); Vr=V@R.T
-    # camera regarde -Y ; ecran=(X,Z), profondeur=Y
-    sx,sy=Vr[:,0],Vr[:,2]; depth=Vr[:,1]
+    # vue physiquement correcte depuis +Y : right=-X, up=+Z, profondeur=Y
+    sx,sy=-Vr[:,0],Vr[:,2]; depth=Vr[:,1]
     pad=30
     minx,maxx,miny,maxy=sx.min(),sx.max(),sy.min(),sy.max()
     sc=(size-2*pad)/max(maxx-minx,maxy-miny)

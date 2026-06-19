@@ -1,0 +1,37 @@
+============================================================
+   ÉTUI BRIQUET FLAMME — APPLI DE PERSONNALISATION
+============================================================
+
+Grave un texte (1-2 lignes) + un motif sur le CORPS de l'étui Clipper,
+et génère le STL prêt à imprimer (corps gravé + couvercle flamme).
+
+------------------------------------------------------------
+1) INSTALLER PYTHON (une seule fois)
+------------------------------------------------------------
+https://www.python.org/downloads/  → Windows : COCHE "Add Python to PATH".
+
+------------------------------------------------------------
+2) LANCER
+------------------------------------------------------------
+- WINDOWS : double-clic sur  Etui_Windows.bat
+- MAC     : clic droit sur  Etui_Mac.command  > Ouvrir
+
+⚠️ La PREMIÈRE fois, l'appli installe le moteur 3D "build123d"
+   (~200 Mo, ça peut prendre quelques minutes). Ensuite c'est rapide.
+
+------------------------------------------------------------
+3) PERSONNALISER
+------------------------------------------------------------
+- Tape 1 ou 2 lignes (ex. "SUPER" / "PAPA"), ou choisis un préréglage.
+- Choisis un motif (Cœur, Étoile, Couronne, Moustache) — gravé au-dessus.
+- Clique "Créer le fichier STL".
+  → La génération prend ~1 à 2 min (filetage + gravure). Patiente.
+  → Le fichier apparaît dans le sous-dossier  STL/  (etui_..._FINAL.stl)
+    et le dossier s'ouvre tout seul.
+- Imprime comme d'habitude (supports pour la flamme + l'arceau).
+
+Le couvercle (flamme + arceau) est construit une seule fois puis réutilisé
+→ seules les commandes changent le corps gravé.
+
+CLI (avancé) :  python perso_app.py "DAD" "JULIEN" coeur
+============================================================
